@@ -1,0 +1,4 @@
+/builds
+/.vscode
+/log
+/cmd/*/*log*
