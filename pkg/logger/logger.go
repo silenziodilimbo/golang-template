@@ -42,7 +42,7 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	// caller := fmt.Sprintf("%s:%d %s", entry.Caller.File, entry.Caller.Line, entry.Caller.Function)
 	// msg := fmt.Sprintf("%s %s [%s]\n", levelText, entry.Message, caller)
 	// return []byte(msg), nil
-	timestamp := entry.Time.Format("2006-01-02 15:04:05.999")
+	timestamp := entry.Time.Format("2006-01-02 15:04:05.000")
 	levelText := fmt.Sprintf("[%s]", timestamp)
 	caller := fmt.Sprintf(" [func: %s %s:%d]", entry.Caller.Function, filepath.Base(entry.Caller.File), entry.Caller.Line)
 	// Convert the entry.Data map to a string
