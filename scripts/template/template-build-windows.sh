@@ -14,6 +14,6 @@ cd ../../cmd/template/
 export GOARCH=amd64
 export GOOS=windows
 
-go build -ldflags "-X 'template/internal/status.gGitTag=${GIT_TAG}' -X 'template/internal/status.gGitCommitID=${GIT_COMMITID}' -X 'template/internal/status.gBuildTime=${BUILD_TIME}'" -o ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/bin/template.exe -buildvcs=false
-cp -f -r ../../configs/* ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/cfg/
+go build -ldflags "-X 'template/internal/status.gGitTag=${GIT_TAG}' -X 'template/internal/status.gGitCommitID=${GIT_COMMITID}' -X 'template/internal/status.gBuildTime=${BUILD_TIME}'" -o ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/template.exe -buildvcs=false
+cp -f -r ../../configs/* ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/
 cp -f -r ../../deploy/scripts/* ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/

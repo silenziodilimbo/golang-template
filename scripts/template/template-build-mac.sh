@@ -13,6 +13,6 @@ cd ../../cmd/template/
 
 export GOOS=darwin
 
-go build -ldflags "-X 'template/internal/status.gGitTag=${GIT_TAG}' -X 'template/internal/status.gGitCommitID=${GIT_COMMITID}' -X 'template/internal/status.gBuildTime=${BUILD_TIME}'" -o ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/bin/template -buildvcs=false
-cp -f -r ../../configs/* ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/cfg/
+go build -ldflags "-X 'template/internal/status.gGitTag=${GIT_TAG}' -X 'template/internal/status.gGitCommitID=${GIT_COMMITID}' -X 'template/internal/status.gBuildTime=${BUILD_TIME}'" -o ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/template -buildvcs=false
+cp -f -r ../../configs/* ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/
 cp -f -r ../../deploy/scripts/* ../../builds/template_${GIT_TAG}_${GIT_COMMITID}_${BUILD_TIME}/

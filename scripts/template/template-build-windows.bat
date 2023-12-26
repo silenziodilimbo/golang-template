@@ -20,9 +20,6 @@ cd ..\..\cmd\template\
 set "GOARCH=amd64"
 set "GOOS=windows"
 
-go build -ldflags "-X 'template/internal/status.gGitTag=%GIT_TAG%' -X 'template/internal/status.gGitCommitID=%GIT_COMMITID%' -X 'template/internal/status.gBuildTime=%BUILD_TIME%'" -o "..\..\builds\template_%GIT_TAG%_%GIT_COMMITID%_%BUILD_TIME%\bin\template.exe" -buildvcs=false
-xcopy /y /e "..\..\configs\*" "..\..\builds\template_%GIT_TAG%_%GIT_COMMITID%_%BUILD_TIME%\"\cfg\
+go build -ldflags "-X 'template/internal/status.gGitTag=%GIT_TAG%' -X 'template/internal/status.gGitCommitID=%GIT_COMMITID%' -X 'template/internal/status.gBuildTime=%BUILD_TIME%'" -o "..\..\builds\template_%GIT_TAG%_%GIT_COMMITID%_%BUILD_TIME%\template.exe" -buildvcs=false
+xcopy /y /e "..\..\configs\*" "..\..\builds\template_%GIT_TAG%_%GIT_COMMITID%_%BUILD_TIME%\"
 xcopy /y /e "..\..\deploy\scripts\*" "..\..\builds\template_%GIT_TAG%_%GIT_COMMITID%_%BUILD_TIME%\"
-
-xcopy /y /e "..\..\builds\template_%GIT_TAG%_%GIT_COMMITID%_%BUILD_TIME%\bin\*" "..\..\builds\GS\Ver_5.3.16_202311091726_f381c4450_447\bin\"
-xcopy /y /e "..\..\builds\template_%GIT_TAG%_%GIT_COMMITID%_%BUILD_TIME%\config\*" "..\..\builds\GS\Ver_5.3.16_202311091726_f381c4450_447\config\"
