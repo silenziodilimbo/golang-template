@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+	"syscall"
 	"template/internal/params"
 	"template/internal/status"
 	"template/pkg/logger"
@@ -21,4 +24,15 @@ func main() {
 	logger.Setup("./log/", logrus.DebugLevel, false)
 
 	status.LogVersion()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan,
+		os.Interrupt,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+
+	sign := <-signalChan
+	logrus.Infof("get os signal=%v", sign)
+	logrus.Infof("get os signal=%v", sign.String())
 }
