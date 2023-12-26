@@ -1,0 +1,8 @@
+Listen:
+  IP: "localhost"
+  Port: 1883
+Topic:
+  GS:
+    GSEvents: "GSEvents"
+  Agent:
+    AgentEvents: "AgentEvents"
