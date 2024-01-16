@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -59,6 +60,17 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return []byte(msg), nil
 }
 
+type customWriter struct {
+	console io.Writer
+	file    io.Writer
+}
+
+func (cw *customWriter) Write(b []byte) (int, error) {
+	// cw.console.Write(append(b, '\n'))
+	cw.console.Write(b)
+	return cw.file.Write(b)
+}
+
 // with color
 //
 //	func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
@@ -92,12 +104,12 @@ func Setup(path string, logLevel logrus.Level, isHook bool) error {
 	// 	FullTimestamp:   true,
 	// 	TimestampFormat: "2006-01-02 15:04:05",
 	// })
-	logrus.SetFormatter(&CustomFormatter{})
 	// logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetFormatter(&CustomFormatter{})
 	logNameSuffix := ".%Y%m%d"
 	infoPath := fmt.Sprintf("%s%sinfo.log", path, string(filepath.Separator))
 	infoWriter, err := rotatelogs.New(
-		infoPath+logNameSuffix, // fmt.Sprintf("%s%s%s.info.log", path, "%Y%m%d", string(filepath.Separator)),
+		infoPath+logNameSuffix,
 		rotatelogs.WithLinkName(infoPath),
 		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
 		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
@@ -138,10 +150,10 @@ func Setup(path string, logLevel logrus.Level, isHook bool) error {
 	logrus.AddHook(&LevelHook{
 		LevelsList: logrus.AllLevels,
 		Writer: map[logrus.Level]io.Writer{
-			logrus.InfoLevel:  infoWriter,
-			logrus.DebugLevel: debugWriter,
-			logrus.ErrorLevel: errorWriter,
-			logrus.WarnLevel:  warnWriter,
+			logrus.InfoLevel:  &customWriter{console: os.Stdout, file: infoWriter},
+			logrus.DebugLevel: &customWriter{console: os.Stdout, file: debugWriter},
+			logrus.ErrorLevel: &customWriter{console: os.Stdout, file: errorWriter},
+			logrus.WarnLevel:  &customWriter{console: os.Stdout, file: warnWriter},
 		},
 	})
 	return nil
