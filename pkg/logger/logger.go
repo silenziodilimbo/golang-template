@@ -29,6 +29,7 @@ func (hook *LevelHook) Fire(entry *logrus.Entry) error {
 	}
 	return nil
 }
+
 func (hook *LevelHook) Levels() []logrus.Level {
 	return hook.LevelsList
 }
@@ -43,9 +44,11 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	// caller := fmt.Sprintf("%s:%d %s", entry.Caller.File, entry.Caller.Line, entry.Caller.Function)
 	// msg := fmt.Sprintf("%s %s [%s]\n", levelText, entry.Message, caller)
 	// return []byte(msg), nil
+
 	timestamp := entry.Time.Format("2006-01-02 15:04:05.000")
 	levelText := fmt.Sprintf("[%s]", timestamp)
 	caller := fmt.Sprintf(" [func: %s %s:%d]", entry.Caller.Function, filepath.Base(entry.Caller.File), entry.Caller.Line)
+
 	// Convert the entry.Data map to a string
 	fieldsStr := ""
 	if len(entry.Data) != 0 {
@@ -56,6 +59,7 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		fieldsStr = strings.Join(fields, ", ")
 		fieldsStr = fmt.Sprintf(" [Fields: {%s}]", fieldsStr)
 	}
+
 	msg := fmt.Sprintf("%s %s%s%s", levelText, entry.Message, fieldsStr, caller)
 	return []byte(msg), nil
 }
@@ -72,30 +76,30 @@ func (cw *customWriter) Write(b []byte) (int, error) {
 }
 
 // with color
-//
-//	func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-//		f.DisableColors = true // disable colors
-//		timestamp := entry.Time.Format("2006-01-02 15:04:05")
-//		levelColor := f.getLevelColor(entry.Level)
-//		// levelText := fmt.Sprintf("%s[%s]", strings.ToUpper(entry.Level.String()), timestamp)
-//		levelText := fmt.Sprintf("[%s]", timestamp)
-//		caller := fmt.Sprintf("%s:%d %s", entry.Caller.File, entry.Caller.Line, entry.Caller.Function)
-//		msg := fmt.Sprintf("%s%s\x1b[0m %s [%s]\n", levelColor, levelText, entry.Message, caller)
-//		return []byte(msg), nil
-//	}
-//
-//	func (f *CustomFormatter) getLevelColor(level logrus.Level) string {
-//		switch level {
-//		case logrus.DebugLevel, logrus.TraceLevel:
-//			return "\x1b[37m" // white
-//		case logrus.WarnLevel:
-//			return "\x1b[33m" // yellow
-//		case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
-//			return "\x1b[31m" // red
-//		default:
-//			return "\x1b[36m" // cyan
-//		}
-//	}
+// func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+// 	f.DisableColors = true // disable colors
+// 	timestamp := entry.Time.Format("2006-01-02 15:04:05")
+// 	levelColor := f.getLevelColor(entry.Level)
+// 	// levelText := fmt.Sprintf("%s[%s]", strings.ToUpper(entry.Level.String()), timestamp)
+// 	levelText := fmt.Sprintf("[%s]", timestamp)
+// 	caller := fmt.Sprintf("%s:%d %s", entry.Caller.File, entry.Caller.Line, entry.Caller.Function)
+// 	msg := fmt.Sprintf("%s%s\x1b[0m %s [%s]\n", levelColor, levelText, entry.Message, caller)
+// 	return []byte(msg), nil
+// }
+
+// func (f *CustomFormatter) getLevelColor(level logrus.Level) string {
+// 	switch level {
+// 	case logrus.DebugLevel, logrus.TraceLevel:
+// 		return "\x1b[37m" // white
+// 	case logrus.WarnLevel:
+// 		return "\x1b[33m" // yellow
+// 	case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
+// 		return "\x1b[31m" // red
+// 	default:
+// 		return "\x1b[36m" // cyan
+// 	}
+// }
+
 func Setup(path string, logLevel logrus.Level, isHook bool) error {
 	logrus.SetLevel(logLevel)
 	logrus.SetReportCaller(true)
@@ -106,54 +110,103 @@ func Setup(path string, logLevel logrus.Level, isHook bool) error {
 	// })
 	// logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetFormatter(&CustomFormatter{})
-	logNameSuffix := ".%Y%m%d"
-	infoPath := fmt.Sprintf("%s%sinfo.log", path, string(filepath.Separator))
-	infoWriter, err := rotatelogs.New(
-		infoPath+logNameSuffix,
-		rotatelogs.WithLinkName(infoPath),
+
+	logNameSuffix := "%Y%m%d"
+
+	panicPath := fmt.Sprintf("%s%s%s.panic.log", path, string(filepath.Separator), logNameSuffix)
+	panicLinkPath := fmt.Sprintf("%s%spanic.log", path, string(filepath.Separator))
+	panicWriter, err := rotatelogs.New(
+		panicPath,
+		rotatelogs.WithLinkName(panicLinkPath),
 		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
 		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
 	)
 	if err != nil {
 		return err
 	}
-	debugPath := fmt.Sprintf("%s%sdebug.log", path, string(filepath.Separator))
-	debugWriter, err := rotatelogs.New(
-		debugPath+logNameSuffix,
-		rotatelogs.WithLinkName(debugPath),
+
+	fatalPath := fmt.Sprintf("%s%s%s.fatal.log", path, string(filepath.Separator), logNameSuffix)
+	fatalLinkPath := fmt.Sprintf("%s%sfatal.log", path, string(filepath.Separator))
+	fatalWriter, err := rotatelogs.New(
+		fatalPath,
+		rotatelogs.WithLinkName(fatalLinkPath),
 		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
 		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
 	)
 	if err != nil {
 		return err
 	}
-	errorPath := fmt.Sprintf("%s%serror.log", path, string(filepath.Separator))
+
+	errorPath := fmt.Sprintf("%s%s%s.error.log", path, string(filepath.Separator), logNameSuffix)
+	errorLinkPath := fmt.Sprintf("%s%serror.log", path, string(filepath.Separator))
 	errorWriter, err := rotatelogs.New(
-		errorPath+logNameSuffix,
-		rotatelogs.WithLinkName(errorPath),
+		errorPath,
+		rotatelogs.WithLinkName(errorLinkPath),
 		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
 		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
 	)
 	if err != nil {
 		return err
 	}
-	warnPath := fmt.Sprintf("%s%swarn.log", path, string(filepath.Separator))
+
+	warnPath := fmt.Sprintf("%s%s%s.warn.log", path, string(filepath.Separator), logNameSuffix)
+	warnLinkPath := fmt.Sprintf("%s%swarn.log", path, string(filepath.Separator))
 	warnWriter, err := rotatelogs.New(
-		warnPath+logNameSuffix,
-		rotatelogs.WithLinkName(warnPath),
+		warnPath,
+		rotatelogs.WithLinkName(warnLinkPath),
 		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
 		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
 	)
 	if err != nil {
 		return err
 	}
+
+	infoPath := fmt.Sprintf("%s%s%s.info.log", path, string(filepath.Separator), logNameSuffix)
+	infoLinkPath := fmt.Sprintf("%s%sinfo.log", path, string(filepath.Separator))
+	infoWriter, err := rotatelogs.New(
+		infoPath,
+		rotatelogs.WithLinkName(infoLinkPath),
+		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
+		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
+	)
+	if err != nil {
+		return err
+	}
+
+	debugPath := fmt.Sprintf("%s%s%s.debug.log", path, string(filepath.Separator), logNameSuffix)
+	debugLinkPath := fmt.Sprintf("%s%sdebug.log", path, string(filepath.Separator))
+	debugWriter, err := rotatelogs.New(
+		debugPath,
+		rotatelogs.WithLinkName(debugLinkPath),
+		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
+		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
+	)
+	if err != nil {
+		return err
+	}
+
+	tracePath := fmt.Sprintf("%s%s%s.trace.log", path, string(filepath.Separator), logNameSuffix)
+	traceLinkPath := fmt.Sprintf("%s%strace.log", path, string(filepath.Separator))
+	traceWriter, err := rotatelogs.New(
+		tracePath,
+		rotatelogs.WithLinkName(traceLinkPath),
+		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
+		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
+	)
+	if err != nil {
+		return err
+	}
+
 	logrus.AddHook(&LevelHook{
 		LevelsList: logrus.AllLevels,
 		Writer: map[logrus.Level]io.Writer{
-			logrus.InfoLevel:  &customWriter{console: os.Stdout, file: infoWriter},
-			logrus.DebugLevel: &customWriter{console: os.Stdout, file: debugWriter},
+			logrus.PanicLevel: &customWriter{console: os.Stdout, file: panicWriter},
+			logrus.FatalLevel: &customWriter{console: os.Stdout, file: fatalWriter},
 			logrus.ErrorLevel: &customWriter{console: os.Stdout, file: errorWriter},
 			logrus.WarnLevel:  &customWriter{console: os.Stdout, file: warnWriter},
+			logrus.InfoLevel:  &customWriter{console: os.Stdout, file: infoWriter},
+			logrus.DebugLevel: &customWriter{console: os.Stdout, file: debugWriter},
+			logrus.TraceLevel: &customWriter{console: os.Stdout, file: traceWriter},
 		},
 	})
 	return nil

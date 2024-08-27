@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"template/internal/params"
 	"template/internal/status"
@@ -41,8 +42,17 @@ func main() {
 
 func saveDump() {
 	if err := recover(); err != nil {
-		logrus.Errorf("panic=%v", err)
-		time.Sleep(1 * time.Second)
-		os.Exit(1)
+		stackBuf := make([]byte, 1024)
+		for {
+			stackSize := runtime.Stack(stackBuf, true)
+			if stackSize < len(stackBuf) {
+				stackBuf = stackBuf[:stackSize]
+				break
+			}
+			stackBuf = make([]byte, 2*len(stackBuf))
+		}
+
+		// 打印堆栈信息
+		logrus.Fatalf("exit with panic\n%s", string(stackBuf))
 	}
 }
